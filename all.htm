@@ -1,0 +1,1467 @@
+<!-- *@File name: ammVector.htm
+	 *@Brief: 以讀檔方式計算全部蛋白質的add, multiple, mean deviation
+	 *@Author: 黃道湧，蔡采潔。
+	 *@Update: 2015/11/25
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">    
+<head>
+     
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="http://www.pureexample.com/js/flot/excanvas.min.js"></script><![endif]-->
+    <script type="text/javascript" src="http://www.pureexample.com/js/lib/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="http://www.pureexample.com/js/flot/jquery.flot.min.js"></script>
+	<script type="text/javascript" src="/js/flot/jquery.flot.symbol.js"></script>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="http://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript">
+	
+	var acids = [];				//	胺基酸狀態
+	var whetherEp = [];			//	是否為表位
+	var vectorM_1 = [];			//	在file中第1欄為Mean
+	var vectotAm_2 = [];		//	在file中第2欄為Amplification
+	var vectorD_3 = [];			//	在file中第3欄為Deviation
+	var vectorW1_4 = [];		//	在file中第4欄為WCN1
+	var vectorW2_5 = [];		//	在file中第5欄為WCN2
+	var vectorC_6 = [];			//	在file中第6欄為Consurf
+	var vectorB_7 =[];			//	在file中第7欄為Beta-Turn
+	var vectorS_8 =[];			//	在file中第8欄為Surface
+	var vectorA_9 =[];			//	在file中第9欄為Antigenicity
+	var vectorH_10 =[];			//	在file中第10欄為Hydrophilicity
+	var proteinName = [];		//	各蛋白質的ID
+	var proteinLength = [];		//	各蛋白質的長度，如：1A2Y_C為129
+	var i = 0;
+	var j = 0;
+	var x = 0;
+	var index = 0;				//	第幾種蛋白質，如：1A2Y_C為第1種
+	var countProtein = 0;		//	總共128個蛋白質
+	var start = 0;	
+	
+	//	為了作圖
+	var epitM_1 = [];			//	作圖的Mean表位標記
+	var epitAm_2 = [];
+	var epitD_3 = [];
+	var epitW1_4 = [];
+	var epitW2_5 = [];
+	var epitC_6 = [];
+	var epitB_7 = [];
+	var epitS_8 = [];
+	var epitA_9 = [];
+	var epitH_10 = [];
+	
+	var flotM_1 = [];
+	var flotAm_2 = [];
+	var flotD_3 = [];
+	var flotW1_4 = [];
+	var flotW2_5 = [];
+	var flotC_6 = [];
+	var flotB_7 = [];
+	var flotS_8 = [];
+	var flotA_9 = [];
+	var flotH_10 = [];
+	
+	var temp_epitopeMarkBeta = [];
+	var temp_epitopeMarkSurf = [];
+	var temp_epitopeMarkAnti = [];
+	var temp_epitopeMarkHydr = [];
+	var temp_epitopeMarkCon = [];
+	var temp_epitopeMarkMean = [];
+	var temp_epitopeMarkAmpl = [];
+	var temp_epitopeMarkWcn1 = [];
+	var temp_epitopeMarkWcn2 = [];
+	var temp_epitopeMarkDev = [];
+
+	
+	var markB = 0;
+	var markS = 0;
+	var markA = 0;
+	var markH = 0;
+	var markM = 0;
+	var markAm = 0;
+	var markD = 0;
+	var markC = 1;
+	var markW1 = 1;
+	var markW2 = 0;
+	
+	var epitB = 1;
+	var epitS = 1;
+	var epitA = 1;
+	var epitH = 1;
+	var epitM = 1;
+	var epitAm = 1;
+	var epitD = 1;
+	var epitC = 1;
+	var epitW1 = 1;
+	var epitW2 = 1;
+	
+	window.onload = function () {                             
+									document.getElementById('matrixFile').onchange = readMatrix;
+								};
+								
+	function readMatrix() 
+	{                                                      
+		file = this.files[0];
+		var fReader = new FileReader();
+		fReader.onload = trigger_3;										//	event為[object ProgressEvent]
+		fReader.readAsText(file);
+	}
+	function trigger_3(event)
+	{
+		
+		var fileResult = event.target.result;							//	檔案的所有內容
+		var fileContentLength = event.target.result.length;				//	檔案內容的字元數
+		var fileContentRow = fileContentLength/134;
+		
+		
+		for (i = 0; i < fileContentLength; i = i + 136)					//	111 + 2(換行)
+		{
+			if (fileResult.substring(i, i+1) == '#')
+			{
+				proteinName[j++] = fileResult.substring(i+1, i+7);
+				i = i + 136;
+				countProtein ++;
+			}
+		}
+
+		//alert(countProtein);
+		for (index = -1; index < countProtein; index++)
+		{
+			acids[index] = [];
+			whetherEp[index] = [];
+			vectorM_1[index] = [];
+			vectotAm_2[index] = [];
+			vectorD_3[index] = [];
+			vectorW1_4[index] = [];
+			vectorW2_5[index] = [];
+			vectorC_6[index] = [];
+			vectorB_7[index] = [];
+			vectorS_8[index] = [];
+			vectorA_9[index] = [];
+			vectorH_10[index] = [];
+			
+			epitM_1[index] = [];
+			epitAm_2[index] = [];
+			epitD_3[index] = [];
+			epitW1_4[index] = [];
+			epitW2_5[index] = [];
+			epitC_6[index] = [];
+			epitB_7[index] = [];
+			epitS_8[index] = [];
+			epitA_9[index] = [];
+			epitH_10[index] = [];
+			
+			
+			temp_epitopeMarkBeta[index] = [];
+			temp_epitopeMarkSurf[index] = [];
+			temp_epitopeMarkAnti[index] = [];
+			temp_epitopeMarkHydr[index] = [];
+			temp_epitopeMarkCon[index] = [];
+			temp_epitopeMarkMean[index] = [];
+			temp_epitopeMarkAmpl[index] = [];
+			temp_epitopeMarkWcn1[index] = [];
+			temp_epitopeMarkWcn2[index] = [];
+			temp_epitopeMarkDev[index] = [];
+			
+			j = 0;
+
+			for (i = start; i < fileContentLength; i = i + 136)
+			{	
+				if (fileResult.substring(i, i+1) == '#')
+				{
+                    start = start + 136;                                      
+                    break;  
+				}
+				acids[index][j] = fileResult.substring(i, i+1);
+				whetherEp[index][j] = fileResult.substring(i+2, i+3);
+				vectorM_1[index][j] = fileResult.substring(i+6, i+12).trim();
+				vectotAm_2[index][j] = fileResult.substring(i+19, i+25).trim();
+				vectorD_3[index][j] = fileResult.substring(i+32, i+38).trim();
+				vectorW1_4[index][j] = fileResult.substring(i+45, i+51).trim();
+				vectorW2_5[index][j] = fileResult.substring(i+58, i+64).trim();
+				vectorC_6[index][j] = fileResult.substring(i+71, i+77).trim();
+				vectorB_7[index][j] = fileResult.substring(i+84, i+90).trim();
+				vectorS_8[index][j] = fileResult.substring(i+97, i+103).trim();
+				vectorA_9[index][j] = fileResult.substring(i+110, i+116).trim();
+				vectorH_10[index][j] = fileResult.substring(i+124, i+129).trim();
+				j++;
+				start = start + 136;
+			}
+		}
+        //alert(fileResult.substring(136+136+6, 136+136+12).trim());
+        
+		var c = 0;
+		j = 0;
+		start = 0;
+		for (index = -1; index < countProtein; index++)
+		{
+			for (i = start; i < fileContentLength; i = i + 136)
+			{
+				if (fileResult.substring(i, i+1) == '#')
+				{	
+					start = start + 136;
+					break;
+				}
+				c ++;
+				start = start + 136;
+				
+			}
+			proteinLength[j++] = c;
+			c = 0;
+		}
+		
+		
+		
+		
+		/*alert(proteinLength[0]); // 0
+		alert(proteinLength[1]);
+		alert(proteinLength[2]);
+		alert(proteinLength[107]);
+		alert(proteinLength[108]);*/
+		//alert(proteinLength[109]);
+		for (i = 0; i < countProtein; i ++)
+		{
+			vectorC_6[i] = slidingWindow(vectorC_6[i],proteinLength[i+1]);
+			vectorC_6[i] = standardizing(vectorC_6[i],proteinLength[i+1]);
+			vectorW1_4[i] = slidingWindow(vectorW1_4[i],proteinLength[i+1]);
+			vectorW2_5[i] = slidingWindow(vectorW2_5[i],proteinLength[i+1]);
+			flotM_1[i] = twoDimensional2DArray(vectorM_1[i]);
+			flotAm_2[i] = twoDimensional2DArray(vectotAm_2[i]);
+			flotD_3[i] = twoDimensional2DArray(vectorD_3[i]);
+			flotW1_4[i] = twoDimensional2DArray(vectorW1_4[i]);
+			flotW2_5[i] = twoDimensional2DArray(vectorW2_5[i]);
+			flotC_6[i] = twoDimensional2DArray(vectorC_6[i]);
+			flotB_7[i] = twoDimensional2DArray(vectorB_7[i]);
+			flotS_8[i] = twoDimensional2DArray(vectorS_8[i]);
+			flotA_9[i] = twoDimensional2DArray(vectorA_9[i]);
+			flotH_10[i] = twoDimensional2DArray(vectorH_10[i]);
+		}
+		//alert(vectorC_6[0]);
+		//alert(vectorC_6[1]);
+		for (i = 0; i < countProtein; i ++)
+		{
+			for (j = 0; j < whetherEp[i].length; j++)
+			{
+				if (whetherEp[i][j] == "1")
+				{
+					epitM_1[i][j] = [];
+					epitAm_2[i][j] = [];
+					epitD_3[i][j] = [];
+					epitW1_4[i][j] = [j, vectorW1_4[i][j]];
+					//epitW2_5[i][j] = [j, vectorW2_5[i][j]];
+					epitW2_5[i][j] = [];
+					epitC_6[i][j] = [j, vectorC_6[i][j]];
+			
+					epitB_7[i][j] = [];
+					epitS_8[i][j] = [];
+					epitA_9[i][j] = [];
+					epitH_10[i][j] = [];
+					
+					//epitopeMarkBeta[i][j] = [j, flotB_7[i][j]];
+					temp_epitopeMarkBeta[i][j] = [j, vectorB_7[i][j]];
+					temp_epitopeMarkSurf[i][j] = [j, vectorS_8[i][j]];
+					temp_epitopeMarkAnti[i][j] = [j, vectorA_9[i][j]];
+					temp_epitopeMarkHydr[i][j] = [j, vectorH_10[i][j]];
+					temp_epitopeMarkMean[i][j] = [j, vectorM_1[i][j]];
+					temp_epitopeMarkAmpl[i][j] = [j, vectotAm_2[i][j]];
+					temp_epitopeMarkDev[i][j] = [j, vectorD_3[i][j]];
+					
+					temp_epitopeMarkWcn1[i][j] = [j, vectorW1_4[i][j]];
+					temp_epitopeMarkWcn2[i][j] = [j, vectorW2_5[i][j]];
+					temp_epitopeMarkCon[i][j] = [j, vectorC_6[i][j]];
+				}
+				else
+				{
+					epitM_1[i][j] = [];
+					epitAm_2[i][j] = [];
+					epitD_3[i][j] = [];
+					epitW1_4[i][j] = [];
+					epitW2_5[i][j] = [];
+					epitC_6[i][j] = [];
+					epitB_7[i][j] = [];
+					epitS_8[i][j] = [];
+					epitA_9[i][j] = [];
+					epitH_10[i][j] = [];
+				}
+			}
+		}
+		
+		for (i = 0; i < 3; i ++)
+		{
+			showProtein(
+			i, 
+			proteinName[i], 
+			acids[i], 
+			flotM_1[i], 
+			flotAm_2[i], 
+			flotD_3[i], 
+			flotW1_4[i], 
+			flotW2_5[i], 
+			flotC_6[i],
+	        flotB_7[i],
+			flotS_8[i],
+			flotA_9[i],
+			flotH_10[i],			
+			epitM_1[i], 
+			epitAm_2[i], 
+			epitD_3[i],
+			epitW1_4[i], 
+			epitW2_5[i], 
+			epitC_6[i],
+			epitB_7[i], 
+			epitS_8[i], 
+			epitA_9[i],
+			epitH_10[i]
+			);
+			
+		}
+	}
+	//	EB87EA	淡紫色
+	//	FFFF00	亮黃色
+	//	77FF00	亮綠色
+	//	77DDFF	亮藍色
+	//	9F88FF	靛色
+	//	00BB00	深綠色
+	//	D26900	咖啡色
+	//	FFCC22	黃色
+	//	666666	淺黑色
+	//	0066FF	藍色
+	
+	//	FF0000	紅色
+	//	FFA488	皮膚色
+	//	FF44AA	粉紅色
+	//	FFDD55	柑橘色
+	//	5555FF	深靛色
+	//	CC00CC	紫色
+	//	FF88C2	粉紅色
+	//	FF8800	橘色
+	//	BBFF00	淺綠色
+	//	800000	深咖啡色
+	function showProtein(i, name, character, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10)
+	{
+		var dataSet_1 = [
+							{											
+								label: name + "WCN1", data : v4, color : "#FFCC22",
+								lines:
+								{ 										
+									
+									show: markW1
+								}
+							},
+							{
+																		
+								label: "WCN2", data: v5, color: "#666666",
+								lines: 
+								{ 
+									show: markW2
+								}
+							},
+							{											
+								label: "Conservation", data: v6, color: "#9F88FF",
+								lines: 
+								{ 
+									show: markC
+								}
+							},
+							{											
+								label: "Beta-turn", data: v7, color: "#EB87EA",
+								lines: 
+								{ 
+									show: markB 
+								}
+							},
+							{											
+								label: "Surface", data: v8, color: "#FFFF00",
+								lines: 
+								{ 
+									show: markS 
+								}
+							},
+							{											
+								label: "Antigenicity", data: v9, color: "#77FF00",
+								lines: 
+								{ 
+									show: markA 
+								}
+							},
+							{											
+								label: "Hydrophilicity", data: v10, color: "#77DDFF",
+								lines: 
+								{ 
+									show: markH 
+								}
+							},
+							{											
+								label: "Mean", data: v1, color: "#00BB00",
+								lines: 										
+								{ 
+									show: markM
+									
+								}
+							},
+							{											
+								label: "Amplification", data: v2, color: "#D26900",
+								lines: 
+								{ 
+									show: markAm 
+								}
+							},
+							{											
+								label: "Deviation", data : v3, color : "#0066FF",
+								lines:
+								{ 										
+									
+									show: markD
+								}
+							}, 
+							{											
+								label: "WCN1_Ep", data : e4, color : "#FF0000",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FF0000", lineWidth: 0,
+									show: epitW1
+								}
+							},
+							{											
+								label: "WCN2_Ep", data : e5, color : "#CC00CC",
+								points:
+								{ 										
+									radius: 3, fillColor: "#CC00CC", lineWidth: 0,
+									show: epitW2
+								}
+							},
+							{											
+								label: "Conservation_Ep", data : e6, color : "#5555FF",
+								points:
+								{ 										
+									radius: 3, fillColor: "#5555FF", lineWidth: 0,
+									show: epitC
+								}
+							},
+							{											
+								label: "Beta-turn_Ep", data : e7, color : "#FFA488",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FFA488", lineWidth: 0,
+									show: epitB
+								}
+							},
+							{											
+								label: "Surface_Ep", data : e8, color : "#800000",
+								points:
+								{ 										
+									radius: 3, fillColor: "#800000", lineWidth: 0,
+									show: epitS
+								}
+							},
+							{											
+								label: "Antigenicity_Ep", data : e9, color : "#FF44AA",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FF44AA", lineWidth: 0,
+									show: epitA
+								}
+							},
+							{											
+								label: "Hydrophilicity_Ep", data : e10, color : "#FFDD55",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FFDD55", lineWidth: 0,
+									show: epitH
+								}
+							},
+							{											
+								label: "Mean_Ep", data : e1, color : "#FF88C2",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FF88C2", lineWidth: 0,
+									show: epitM
+								}
+							},
+{											
+								label: "Amplification_Ep", data : e2, color : "#FF8800",
+								points:
+								{ 										
+									radius: 3, fillColor: "#FF8800", lineWidth: 0,
+									show: epitAm
+								}
+							},
+{											
+								label: "Deviation_Ep", data : e3, color : "#BBFF00",
+								points:
+								{ 										
+									radius: 3, fillColor: "#BBFF00", lineWidth: 0,
+									show: epitD
+								}
+							}						
+							
+							
+						];
+		var options = 	{                                                   
+							legend: {									//	圖例設定
+										noColumns: 10,					//	圖例要以一列顯示
+										labelBoxBorderColor: null,		//	圖例邊框顏色
+										position: "nw"					//	圖例位置: north west        
+									},
+							grid:   {
+										hoverable: true,				//	當游標移到點上將會顯示該點資訊
+										borderWidth: 3,        			//	線圖的邊寬大小
+										backgroundColor: 				//	線圖的背景顏色
+										{	//	顏色為白色、淺藍色、淺綠色
+											colors: ["#ffffff", "#EDF5FF", "#DFFFDF"]
+										}
+									}, 
+							yaxis:	{
+										max: 4, 
+										min: -4
+									}
+				
+						};
+	
+		var previousPoint = null, previousLabel = null;
+		$.fn.UseTooltip = function () 
+		{
+			$(this).bind("plothover", function (event, pos, item) 
+			{
+				if (item) 
+				{
+					if ((previousLabel != item.series.label) || (previousPoint != item.dataIndex)) 
+					{
+						previousPoint = item.dataIndex;
+						previousLabel = item.series.label;
+						$("#tooltip").remove();
+
+						var x = item.datapoint[0];
+						var color = item.series.color;
+
+						showTooltip(item.pageX, item.pageY, color,		//	顯示資訊
+							"<strong>" + item.series.label + "</strong><br>" + 
+							"WCN1: " + character[x] + "[" + v4[x] + "]<br>" +
+							"WCN2: " + character[x] + "[" + v5[x] + "]<br>" +
+							"Conservation: " + character[x] + "[" + v6[x] + "]<br>"+
+							"Beta-Turn: " + character[x] + "[" + v7[x] + "]<br>"+
+							"Surface: " + character[x] + "[" + v8[x] + "]<br>"+
+							"Antigenicity: " + character[x] + "[" + v9[x] + "]<br>"+
+							"Hydrophilicity: " + character[x] + "[" + v10[x] + "]<br>" +
+							"Mean: " + character[x] + "[" + v1[x] + "]<br>" +
+							"Amplification: " + character[x] + "[" + v2[x] + "]<br>" + 
+							"Deviation: " + character[x] + "[" + v3[x] + "]<br>");
+							
+							
+					}
+				} else 
+				{
+					$("#tooltip").remove();
+					previousPoint = null;
+				}
+			});
+		};
+	
+		$(document).ready(function () 
+		{
+            $.plot($("#protein_"+(i+1)),dataSet_1,options);
+			$("#protein_"+(i+1)).UseTooltip();
+        });
+	}
+	function showTooltip(x, y, color, contents)
+	{
+		$('<div id="tooltip">' + contents + '</div>').css(
+		{
+			position: 'absolute',
+			display: 'none',
+			top: y-50,
+			left: x ,
+			border: '2px solid ' + color,
+			padding: '3px',
+			'font-size': '9px',
+			'border-radius': '5px',
+			'background-color': '#fff',
+			'font-family': 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+			opacity: 0.9
+		}).appendTo("body").fadeIn(200);
+	}
+	
+	function twoDimensional2DArray(y)
+	{
+		var i = 0;													  
+		var XYCoordinate = [];
+		for (i = 0; i < y.length; i++)
+			XYCoordinate[i] = [i ,y[i]];
+		return XYCoordinate;
+	}
+	
+	function slidingWindow(score,seqLeng_Global)
+	{
+	    var i = 0;														//	迴圈第一層所使用的索引
+		var j = 0;														//	迴圈第二層所使用的索引
+		var k = 1;														//	迴圈內的位移量所使用
+		var windowScore = [];
+		var windowSize_Global=13;
+		var sum = [];
+		
+		for(i = 0; i < seqLeng_Global; i ++)                                                    
+		{
+			  windowScore[i] = 0;										//	必須初始化後才能使用
+			  sum[i] = 0;
+		}
+		for(i = 0; i < (windowSize_Global - 1) / 2; i ++)                                          //i=(0~5)
+		   for(j = 0; j < ( i + ((windowSize_Global - 1) / 2) + 1); j ++)                //j=(0~i+6)
+		       sum[i] = sum[i]/1 + score[j]/1;                                                         //sum[0]=sum[0]+score[0~6]
+		for(i = seqLeng_Global - 1; i > (seqLeng_Global - ((windowSize_Global - 1) / 2) - 1) ; i --)            //i=(129~124)
+		{
+		   for(j = seqLeng_Global - 1; j > (seqLeng_Global - ((windowSize_Global - 1) / 2) - k - 1); j --)          //j=(129~124-k)
+		   {
+		       sum[i] = sum[i]/1 + score[j]/1;                                                       //sum[129]=sum[129]+score[129~123]
+		   }
+		   k++;
+		}
+    	for(i = (windowSize_Global - 1) / 2; i < (seqLeng_Global - ((windowSize_Global - 1) / 2)); i ++)                                                //因為windowsize=13  前6個(0~5)最終值將為0  所以迴圈初值從6開始計算
+    		for(j = (i - ((windowSize_Global - 1) / 2)); j < (i + ((windowSize_Global - 1) / 2) + 1); j ++)                                          //總和範圍為  x-6到x  x到x+6
+    			sum[i] = sum[i]/1 + score[j]/1;
+    
+    	for(i = (windowSize_Global - 1) / 2; i <(seqLeng_Global - ((windowSize_Global - 1) / 2)); i ++)                                                   //取平均給變數final_score  當作最終分數
+    	{
+    		windowScore[i] = (sum[i] / windowSize_Global);
+			windowScore[i] = windowScore[i].toFixed(3);
+    	}
+		for(i = 0; i < ((windowSize_Global - 1) / 2);i ++)
+		{
+		    windowScore[i] = (sum[i] / (((windowSize_Global - 1) / 2) + i + 1)); 
+            windowScore[i] = windowScore[i].toFixed(3);			
+		}
+		k = 1;
+		for(i = seqLeng_Global -1 ; i > (seqLeng_Global - ((windowSize_Global - 1) / 2) -1 ); i --)
+		{
+		    windowScore[i] = (sum[i] / (((windowSize_Global - 1) / 2) + k));
+			windowScore[i] = windowScore[i].toFixed(3);
+			k++;
+		}
+		return windowScore;
+	}
+	
+	function standardizing(windowScore, seqLeng_Global)
+	{
+	   var average_real_score = 0;                 //平均
+	   var average_square_score = 0;              //平方的平均
+	   var square_average_score = 0;              // 平均的平方
+	   var square_score  = [];                    //平方
+	   var sigma = 0; //標準差 = 「平方的平均」減去「平均的平方」
+	   var i = 0;													//	迴圈第一層所使用的索引
+	   var z_score = [];
+	   var singlePoint = [];
+	   
+	   for(i = 0; i < seqLeng_Global; i ++)
+	 
+	      square_score[i] = windowScore[i] * windowScore[i];
+	
+	   for(i = 0;i < seqLeng_Global;i ++)
+	   {
+	      average_square_score = (average_square_score + square_score[i]/1);         ///平方的總合
+       }
+	   average_square_score = average_square_score /(seqLeng_Global);
+	   
+	   for(i = 0;i <seqLeng_Global;i ++)
+	   {
+	      average_real_score = (average_real_score + (windowScore[i]/1));
+	   }
+	   average_real_score = average_real_score / (seqLeng_Global);
+	   
+	   square_average_score = average_real_score*average_real_score;                 //平均的平方
+	   sigma = Math.sqrt(average_square_score - square_average_score);
+	  
+	   for(i =0;i <seqLeng_Global;i ++)
+	   {
+	      z_score[i] = ((windowScore[i]/1)-average_real_score)/sigma;
+		  z_score[i] = z_score[i].toFixed(3);
+	   }
+	   for(i =0;i <seqLeng_Global;i ++)
+	   {
+	     singlePoint[i] = z_score[i];
+	   }
+	   return singlePoint;
+	}
+	
+	function choice(my_form)
+	{	
+		if (my_form.checkBeta.checked)
+		{
+			markB = 1;
+			if (my_form.epitopeBeta.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitB = 1;
+					epitB_7[i] = temp_epitopeMarkBeta[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitB = 0;
+					epitB_7[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markB = 0;
+			if (my_form.epitopeBeta.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitB = 1;
+					epitB_7[i] = temp_epitopeMarkBeta[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitB = 0;
+					epitB_7[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		
+		if (my_form.checkSurf.checked)
+		{
+			markS = 1;
+			if (my_form.epitopeSurf.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitS = 1;
+					epitS_8[i] = temp_epitopeMarkSurf[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitS = 0;
+					epitS_8[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markS = 0;
+			if (my_form.epitopeSurf.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitS = 1;
+					epitS_8[i] = temp_epitopeMarkSurf[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitS = 0;
+					epitS_8[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		
+		if (my_form.checkAnti.checked)
+		{
+			markA = 1;
+			if (my_form.epitopeAnti.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitA = 1;
+					epitA_9[i] = temp_epitopeMarkAnti[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitA = 0;
+					epitA_9[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markA = 0;
+			if (my_form.epitopeAnti.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitA = 1;
+					epitA_9[i] = temp_epitopeMarkAnti[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitA = 0;
+					epitA_9[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		
+		if (my_form.checkHydr.checked)
+		{
+			markH = 1;
+			if (my_form.epitopeHydr.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitH = 1;
+					epitH_10[i] = temp_epitopeMarkHydr[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitH = 0;
+					epitH_10[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markH = 0;
+			if (my_form.epitopeHydr.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitH = 1;
+					epitH_10[i] = temp_epitopeMarkHydr[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitH = 0;
+					epitH_10[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		
+		
+		if (my_form.checkMean.checked)
+		{
+			markM = 1;
+			if (my_form.epitopeMean.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitM = 1;
+					epitM_1[i] = temp_epitopeMarkMean[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitM_1[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitM = 0;
+					epitM_1[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitM_1[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markM = 0;
+			if (my_form.epitopeMean.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitM = 1;
+					epitM_1[i] = temp_epitopeMarkMean[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitM_1[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitM = 0;
+					epitM_1[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitM_1[i]);
+				}
+			}
+		}
+		
+		
+		if (my_form.checkAmpl.checked)
+		{
+			markAm = 1;
+			if (my_form.epitopeAmpl.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitAm = 1;
+					epitAm_2[i] = temp_epitopeMarkAmpl[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitAm = 0;
+					epitAm_2[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markAm = 0;
+			if (my_form.epitopeAmpl.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitAm = 1;
+					epitAm_2[i] = temp_epitopeMarkAmpl[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitAm = 0;
+					epitAm_2[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		//
+		if (my_form.checkDev.checked)
+		{
+			markD = 1;
+			if (my_form.epitopeDev.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitD = 1;
+					epitD_3[i] = temp_epitopeMarkDev[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitD = 0;
+					epitD_3[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markD = 0;
+			if (my_form.epitopeDev.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitD = 1;
+					epitD_3[i] = temp_epitopeMarkDev[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitD = 0;
+					epitD_3[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		if (my_form.checkWcn1.checked)
+		{
+			markW1 = 1;
+			if (my_form.epitopeWcn1.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW1 = 1;
+					epitW1_4[i] = temp_epitopeMarkWcn1[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW1 = 0;
+					epitW1_4[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markW1 = 0;
+			if (my_form.epitopeWcn1.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW1 = 1;
+					epitW1_4[i] = temp_epitopeMarkWcn1[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW1 = 0;
+					epitW1_4[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		//
+		if (my_form.checkWcn2.checked)
+		{
+			markW2 = 1;
+			if (my_form.epitopeWcn2.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW2 = 1;
+					epitW2_5[i] = temp_epitopeMarkWcn2[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW2 = 0;
+					epitW2_5[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markW2 = 0;
+			if (my_form.epitopeWcn2.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW2 = 1;
+					epitW2_5[i] = temp_epitopeMarkWcn2[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitW2 = 0;
+					epitW2_5[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+		//
+		if (my_form.checkCon.checked)
+		{
+			markC = 1;
+			if (my_form.epitopeCon.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitC = 1;
+					epitC_6[i] = temp_epitopeMarkCon[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitC = 0;
+					epitC_6[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			
+		}
+		else
+		{
+			markC = 0;
+			if (my_form.epitopeCon.checked)
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitC = 1;
+					epitC_6[i] = temp_epitopeMarkCon[i];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+			else
+			{
+				for (i = 0; i < 3; i++)
+				{
+					$("#protein_" + (i+1)).html("");
+					epitC = 0;
+					epitC_6[i] = [];
+					showProtein(i,proteinName[i],acids[i],flotM_1[i],flotAm_2[i],flotD_3[i],flotW1_4[i],flotW2_5[i],flotC_6[i],flotB_7[i],flotS_8[i],flotA_9[i],flotH_10[i],epitM_1[i],epitAm_2[i],epitD_3[i],epitW1_4[i],epitW2_5[i],epitC_6[i],epitB_7[i],epitS_8[i],epitA_9[i],epitH_10[i]);
+				}
+			}
+		}
+	}
+	</script>
+</head>
+<body>
+<style type="text/css">
+		
+		#protein_1{width:1250px;height:400px;}
+		#protein_2{width:1250px;height:400px;}
+		#protein_3{width:1250px;height:400px;}
+		#protein_4{width:1250px;height:400px;}
+		#protein_5{width:1250px;height:400px;}
+		<!--#protein_6{width:1250px;height:400px;}
+		#protein_7{width:1250px;height:400px;}
+		#protein_8{width:1250px;height:400px;}
+		#protein_9{width:1250px;height:400px;}
+		#protein_10{width:1250px;height:400px;}
+		#protein_11{width:1250px;height:400px;}
+		#protein_12{width:1250px;height:400px;}
+		#protein_13{width:1250px;height:400px;}
+		#protein_14{width:1250px;height:400px;}
+		#protein_15{width:1250px;height:400px;}
+		#protein_16{width:1250px;height:400px;}
+		#protein_17{width:1250px;height:400px;}
+		#protein_18{width:1250px;height:400px;}
+		#protein_19{width:1250px;height:400px;}
+		#protein_20{width:1250px;height:400px;}
+		#protein_21{width:1250px;height:400px;}
+		#protein_22{width:1250px;height:400px;}
+		#protein_23{width:1250px;height:400px;}
+		#protein_24{width:1250px;height:400px;}
+		#protein_25{width:1250px;height:400px;}
+		#protein_26{width:1250px;height:400px;}
+		#protein_27{width:1250px;height:400px;}
+		#protein_28{width:1250px;height:400px;}
+		#protein_29{width:1250px;height:400px;}
+		#protein_30{width:1250px;height:400px;}
+		#protein_31{width:1250px;height:400px;}
+		#protein_32{width:1250px;height:400px;}
+		#protein_33{width:1250px;height:400px;}
+		#protein_34{width:1250px;height:400px;}
+		#protein_35{width:1250px;height:400px;}
+		#protein_36{width:1250px;height:400px;}
+		#protein_37{width:1250px;height:400px;}
+		#protein_38{width:1250px;height:400px;}
+		#protein_39{width:1250px;height:400px;}
+		#protein_40{width:1250px;height:400px;}
+		#protein_41{width:1250px;height:400px;}
+		#protein_42{width:1250px;height:400px;}
+		#protein_43{width:1250px;height:400px;}
+		#protein_44{width:1250px;height:400px;}
+		#protein_45{width:1250px;height:400px;}
+		#protein_46{width:1250px;height:400px;}
+		#protein_47{width:1250px;height:400px;}
+		#protein_48{width:1250px;height:400px;}
+		#protein_49{width:1250px;height:400px;}
+		#protein_50{width:1250px;height:400px;}
+		#protein_51{width:1250px;height:400px;}
+		#protein_52{width:1250px;height:400px;}
+		#protein_53{width:1250px;height:400px;}
+		#protein_54{width:1250px;height:400px;}
+		#protein_55{width:1250px;height:400px;}
+		#protein_56{width:1250px;height:400px;}
+		#protein_57{width:1250px;height:400px;}
+		#protein_58{width:1250px;height:400px;}
+		#protein_59{width:1250px;height:400px;}
+		#protein_60{width:1250px;height:400px;}
+		#protein_61{width:1250px;height:400px;}
+		#protein_62{width:1250px;height:400px;}
+		#protein_63{width:1250px;height:400px;}
+		#protein_64{width:1250px;height:400px;}
+		#protein_65{width:1250px;height:400px;}
+		#protein_66{width:1250px;height:400px;}
+		#protein_67{width:1250px;height:400px;}
+		#protein_68{width:1250px;height:400px;}
+		#protein_69{width:1250px;height:400px;}
+		#protein_70{width:1250px;height:400px;}
+		#protein_71{width:1250px;height:400px;}
+		#protein_72{width:1250px;height:400px;}
+		#protein_73{width:1250px;height:400px;}
+		#protein_74{width:1250px;height:400px;}
+		#protein_75{width:1250px;height:400px;}
+		#protein_76{width:1250px;height:400px;}
+		#protein_77{width:1250px;height:400px;}
+		#protein_78{width:1250px;height:400px;}
+		#protein_79{width:1250px;height:400px;}
+		#protein_80{width:1250px;height:400px;}
+		#protein_81{width:1250px;height:400px;}
+		#protein_82{width:1250px;height:400px;}
+		#protein_83{width:1250px;height:400px;}
+		#protein_84{width:1250px;height:400px;}
+		#protein_85{width:1250px;height:400px;}
+		#protein_86{width:1250px;height:400px;}
+		#protein_87{width:1250px;height:400px;}
+		#protein_88{width:1250px;height:400px;}
+		#protein_89{width:1250px;height:400px;}
+		#protein_90{width:1250px;height:400px;}
+		#protein_91{width:1250px;height:400px;}
+		#protein_92{width:1250px;height:400px;}
+		#protein_93{width:1250px;height:400px;}
+		#protein_94{width:1250px;height:400px;}
+		#protein_95{width:1250px;height:400px;}
+		#protein_96{width:1250px;height:400px;}
+		#protein_97{width:1250px;height:400px;}
+		#protein_98{width:1250px;height:400px;}
+		#protein_99{width:1250px;height:400px;}
+		#protein_100{width:1250px;height:400px;}
+		#protein_101{width:1250px;height:400px;}
+		#protein_102{width:1250px;height:400px;}
+		#protein_103{width:1250px;height:400px;}
+		#protein_104{width:1250px;height:400px;}
+		#protein_105{width:1250px;height:400px;}
+		#protein_106{width:1250px;height:400px;}
+		#protein_107{width:1250px;height:400px;}
+		#protein_108{width:1250px;height:400px;}-->
+		
+
+	
+    </style>
+	<h2>Epitope Analysis(All)</h2></a>
+	<h4>Please select the AllVector[-]:&nbsp <input id = "matrixFile" type="file"/></h4>
+	<FORM NAME="form" METHOD=POST TARGET>
+		<input type = "checkbox" id = "checkBeta" onClick = "choice(this.form)" />
+			<label for="checkBeta">Beta-Turn line</label>
+		<input type = "checkbox" id = "epitopeBeta" onClick = "choice(this.form)" />
+			<label for="epitopeBeta">Beta-Turn Epitope</label>
+			
+		<p><input type = "checkbox" id = "checkSurf" onClick = "choice(this.form)" />
+			<label for="checkSurf">Surface line</label>
+		<input type = "checkbox" id = "epitopeSurf" onClick = "choice(this.form)"/>
+			<label for="epitopeSurf">Surface Epitope</label><p>
+		
+		<p><input type = "checkbox" id = "checkAnti" onClick = "choice(this.form)"  />
+			<label for="checkAnti">Antigenicity line</label>
+		<input type = "checkbox" id = "epitopeAnti" onClick = "choice(this.form)" />
+			<label for="epitopeAnti">Antigenicity Epitope</label><p>
+			
+		<p><input type = "checkbox" id = "checkHydr" onClick = "choice(this.form)"  />
+			<label for="checkHydr">Hydrophilicity line</label>
+		<input type = "checkbox" id = "epitopeHydr" onClick = "choice(this.form)" />
+			<label for="epitopeHydr">Hydrophilicity Epitope</label><p>
+		
+		<input type = "checkbox" id = "checkMean" onClick = "choice(this.form)" />
+			<label for="checkMean">Mean line</label>
+		<input type = "checkbox" id = "epitopeMean" onClick = "choice(this.form)" />
+			<label for="epitopeMean">Mean Epitope</label>
+		
+		<p><input type = "checkbox" id = "checkAmpl" onClick = "choice(this.form)" />
+			<label for="checkAmpl">Amplification line</label>
+		<input type = "checkbox" id = "epitopeAmpl" onClick = "choice(this.form)" />
+			<label for="epitopeAmpl">Amplification Epitope</label><p>
+		
+		<p><input type = "checkbox" id = "checkDev" onClick = "choice(this.form)" />
+			<label for="checkDev">Deviation line</label>
+		<input type = "checkbox" id = "epitopeDev" onClick = "choice(this.form)" />
+			<label for="epitopeDev">Deviation Epitope</label><p>
+		
+		<p><input type = "checkbox" id = "checkWcn1" onClick = "choice(this.form)" CHECKED />
+			<label for="checkWcn1">WCN1 line</label>
+		<input type = "checkbox" id = "epitopeWcn1" onClick = "choice(this.form)" CHECKED />
+			<label for="epitopeWcn1">WCN1 Epitope</label><p>
+		
+		<p><input type = "checkbox" id = "checkWcn2" onClick = "choice(this.form)"  />
+			<label for="checkWcn2">WCN2 line</label>
+		<input type = "checkbox" id = "epitopeWcn2" onClick = "choice(this.form)"  />
+			<label for="epitopeWcn2">WCN2 Epitope</label><p>
+			
+		<p><input type = "checkbox" id = "checkCon" onClick = "choice(this.form)" CHECKED />
+			<label for="checkCon">Consurf line</label>
+		<input type = "checkbox" id = "epitopeCon" onClick = "choice(this.form)" CHECKED />
+			<label for="epitopeCon">Consurf Epitope</label><p>
+	</FORM>
+	<div id=protein_1></div>
+	<div id=protein_2></div>
+	<div id=protein_3></div>
+	<!--<div id=protein_4></div>
+	<div id=protein_5></div>
+	<div id=protein_6></div>
+	<div id=protein_7></div>
+	<div id=protein_8></div>
+	<div id=protein_9></div>
+	<div id=protein_10></div>
+	<div id=protein_11></div>
+	<div id=protein_12></div>
+	<div id=protein_13></div>
+	<div id=protein_14></div>
+	<div id=protein_15></div>
+	<div id=protein_16></div>
+	<div id=protein_17></div>
+	<div id=protein_18></div>
+	<div id=protein_19></div>
+	<div id=protein_20></div>
+	<div id=protein_21></div>
+	<div id=protein_22></div>
+	<div id=protein_23></div>
+	<div id=protein_24></div>
+	<div id=protein_25></div>
+	<div id=protein_26></div>
+	<div id=protein_27></div>
+	<div id=protein_28></div>
+	<div id=protein_29></div>
+	<div id=protein_30></div>
+	<div id=protein_31></div>
+	<div id=protein_32></div>
+	<div id=protein_33></div>
+	<div id=protein_34></div>
+	<div id=protein_35></div>
+	<div id=protein_36></div>
+	<div id=protein_37></div>
+	<div id=protein_38></div>
+	<div id=protein_39></div>
+	<div id=protein_40></div>
+	<div id=protein_41></div>
+	<div id=protein_42></div>
+	<div id=protein_43></div>
+	<div id=protein_44></div>
+	<div id=protein_45></div>
+	<div id=protein_46></div>
+	<div id=protein_47></div>
+	<div id=protein_48></div>
+	<div id=protein_49></div>
+	<div id=protein_50></div>
+	<div id=protein_51></div>
+	<div id=protein_52></div>
+	<div id=protein_53></div>
+	<div id=protein_54></div>
+	<div id=protein_55></div>
+	<div id=protein_56></div>
+	<div id=protein_57></div>
+	<div id=protein_58></div>
+	<div id=protein_59></div>
+	<div id=protein_60></div>
+	<div id=protein_61></div>
+	<div id=protein_62></div>
+	<div id=protein_63></div>
+	<div id=protein_64></div>
+	<div id=protein_65></div>
+	<div id=protein_66></div>
+	<div id=protein_67></div>
+	<div id=protein_68></div>
+	<div id=protein_69></div>
+	<div id=protein_70></div>
+	<div id=protein_71></div>
+	<div id=protein_72></div>
+	<div id=protein_73></div>
+	<div id=protein_74></div>
+	<div id=protein_75></div>
+	<div id=protein_76></div>
+	<div id=protein_77></div>
+	<div id=protein_78></div>
+	<div id=protein_79></div>
+	<div id=protein_80></div>
+	<div id=protein_81></div>
+	<div id=protein_82></div>
+	<div id=protein_83></div>
+	<div id=protein_84></div>
+	<div id=protein_85></div>
+	<div id=protein_86></div>
+	<div id=protein_87></div>
+	<div id=protein_88></div>
+	<div id=protein_89></div>
+	<div id=protein_90></div>
+	<div id=protein_91></div>
+	<div id=protein_92></div>
+	<div id=protein_93></div>
+	<div id=protein_94></div>
+	<div id=protein_95></div>
+	<div id=protein_96></div>
+	<div id=protein_97></div>
+	<div id=protein_98></div>
+	<div id=protein_99></div>
+	<div id=protein_100></div>
+	<div id=protein_101></div>
+	<div id=protein_102></div>
+	<div id=protein_103></div>
+	<div id=protein_104></div>
+	<div id=protein_105></div>
+	<div id=protein_106></div>
+	<div id=protein_107></div>
+	<div id=protein_108></div>-->
+	
+	
+	</body>
+</html>
